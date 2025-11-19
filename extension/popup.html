@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RealityFix</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🔍 RealityFix</h1>
+      <p class="tagline">Real-Time Fact Checker</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Analyzing content...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="error hidden">
+      <p id="errorMessage"></p>
+      <button id="retryBtn" class="btn btn-secondary">Retry</button>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="results hidden">
+      <!-- Trust Score -->
+      <div class="score-container">
+        <div class="score-circle" id="scoreCircle">
+          <span class="score-value" id="scoreValue">--</span>
+          <span class="score-label">Trust Score</span>
+        </div>
+        <div class="score-status" id="scoreStatus">
+          <span class="status-badge" id="statusBadge">Analyzing</span>
+          <span class="confidence" id="confidence">Confidence: --</span>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary">
+        <h3>Analysis Summary</h3>
+        <p id="summaryText">No analysis yet. Click "Analyze Page" to start.</p>
+      </div>
+
+      <!-- Evidence Links -->
+      <div class="evidence">
+        <h3>Evidence from Trusted Sources</h3>
+        <div id="evidenceList" class="evidence-list">
+          <p class="no-evidence">No evidence available yet.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button id="fullReportBtn" class="btn btn-primary" disabled>
+          📄 Open Full Report
+        </button>
+        <button id="analyzeBtn" class="btn btn-secondary">
+          🔄 Analyze Page
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Powered by AI • <a href="#" id="aboutLink">About</a></p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

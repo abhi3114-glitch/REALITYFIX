@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# ML Models
+backend/models/*.bin
+backend/models/*.pt
+backend/models/*.pth
+*.h5
+*.pkl
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extension
+extension/*.crx
+extension/*.pem
+extension/*.zip
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Backup
+*.backup
+*.bak
+backup/
