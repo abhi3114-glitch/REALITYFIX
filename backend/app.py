@@ -1,6 +1,4 @@
-"""
-FastAPI Backend - Main Application with URL-based trust scoring
-"""
+# REALITYFIX/backend/app.py
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +8,8 @@ from typing import Optional, List
 import uuid
 from datetime import datetime
 
-from text_detector import TextDetector
+# Import the IMPROVED detector
+from text_detector import ImprovedTextDetector
 from image_detector import ImageDetector
 from audio_detector import AudioDetector
 from evidence_retriever import EvidenceRetriever
@@ -18,22 +17,22 @@ from database import Database
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="RealityFix API",
-    description="Real-time fake news and manipulated media detection API",
-    version="1.0.0"
+    title="RealityFix API - Improved",
+    description="Enhanced fake news detection with better accuracy",
+    version="2.0.0"
 )
 
-# CORS middleware for browser extension
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize components
-text_detector = TextDetector()
+# Initialize components with improved detector
+text_detector = ImprovedTextDetector()  # ← Using improved version
 image_detector = ImageDetector()
 audio_detector = AudioDetector()
 evidence_retriever = EvidenceRetriever()
@@ -42,7 +41,7 @@ database = Database()
 # Request/Response Models
 class TextAnalysisRequest(BaseModel):
     text: str
-    url: Optional[str] = None  # Add optional URL parameter
+    url: Optional[str] = None
 
 class ImageAnalysisRequest(BaseModel):
     image_url: str
@@ -58,6 +57,7 @@ class AnalysisResponse(BaseModel):
     explanation: str
     report_id: str
     timestamp: str
+    breakdown: Optional[dict] = None  # Added breakdown
 
 # Routes
 
@@ -66,8 +66,15 @@ async def root():
     """Health check endpoint"""
     return {
         "status": "online",
-        "service": "RealityFix API",
-        "version": "1.0.0",
+        "service": "RealityFix API - Improved",
+        "version": "2.0.0",
+        "improvements": [
+            "Enhanced domain trust scoring",
+            "Advanced linguistic pattern analysis",
+            "Multi-signal ensemble approach",
+            "Better known source detection",
+            "Transparent scoring breakdown"
+        ],
         "endpoints": {
             "text_analysis": "/analyze/text",
             "image_analysis": "/analyze/image",
@@ -79,24 +86,24 @@ async def root():
 @app.post("/analyze/text", response_model=AnalysisResponse)
 async def analyze_text(request: TextAnalysisRequest):
     """
-    Analyze text content for misinformation with domain trust scoring
+    Analyze text content with IMPROVED accuracy
     
-    Args:
-        request: TextAnalysisRequest with text and optional url field
-        
-    Returns:
-        AnalysisResponse with score, label, confidence, evidence, and report_id
+    Enhancements:
+    - Domain trust database with 100+ sources
+    - Advanced linguistic pattern detection
+    - Multi-signal scoring (domain + content + structure)
+    - Better handling of trusted vs unknown sources
     """
     try:
         # Validate input
         if not request.text or len(request.text.strip()) < 10:
-            raise HTTPException(status_code=400, detail="Text too short for analysis")
+            raise HTTPException(status_code=400, detail="Text too short for analysis (minimum 10 characters)")
         
-        # Log the URL if provided
+        # Log analysis
         if request.url:
             print(f"Analyzing content from: {request.url}")
         
-        # Perform text analysis WITH URL for domain trust scoring
+        # Perform IMPROVED analysis
         analysis_result = await text_detector.analyze(request.text, url=request.url)
         
         # Retrieve evidence from trusted sources
@@ -105,7 +112,7 @@ async def analyze_text(request: TextAnalysisRequest):
         # Generate report ID
         report_id = str(uuid.uuid4())
         
-        # Prepare response
+        # Prepare response with breakdown
         response = AnalysisResponse(
             score=analysis_result['score'],
             label=analysis_result['label'],
@@ -113,7 +120,8 @@ async def analyze_text(request: TextAnalysisRequest):
             evidence=evidence,
             explanation=analysis_result['explanation'],
             report_id=report_id,
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=datetime.utcnow().isoformat(),
+            breakdown=analysis_result.get('breakdown')  # Include scoring breakdown
         )
         
         # Save to database
@@ -127,42 +135,29 @@ async def analyze_text(request: TextAnalysisRequest):
         return response
         
     except Exception as e:
+        print(f"Analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Text analysis failed: {str(e)}")
 
 @app.post("/analyze/image", response_model=AnalysisResponse)
 async def analyze_image(request: ImageAnalysisRequest):
-    """
-    Analyze image for AI generation or manipulation
-    
-    Args:
-        request: ImageAnalysisRequest with image_url field
-        
-    Returns:
-        AnalysisResponse with score, label, confidence, and report_id
-    """
+    """Analyze image for AI generation or manipulation"""
     try:
-        # Validate input
         if not request.image_url:
             raise HTTPException(status_code=400, detail="Image URL required")
         
-        # Perform image analysis
         analysis_result = await image_detector.analyze(request.image_url)
-        
-        # Generate report ID
         report_id = str(uuid.uuid4())
         
-        # Prepare response
         response = AnalysisResponse(
             score=analysis_result['score'],
             label=analysis_result['label'],
             confidence=analysis_result['confidence'],
-            evidence=[],  # Image analysis doesn't use text evidence
+            evidence=[],
             explanation=analysis_result['explanation'],
             report_id=report_id,
             timestamp=datetime.utcnow().isoformat()
         )
         
-        # Save to database
         await database.save_report(
             report_id=report_id,
             content_type='image',
@@ -177,38 +172,24 @@ async def analyze_image(request: ImageAnalysisRequest):
 
 @app.post("/analyze/audio", response_model=AnalysisResponse)
 async def analyze_audio(request: AudioAnalysisRequest):
-    """
-    Analyze audio for deepfake detection
-    
-    Args:
-        request: AudioAnalysisRequest with audio_url field
-        
-    Returns:
-        AnalysisResponse with score, label, confidence, and report_id
-    """
+    """Analyze audio for deepfake detection"""
     try:
-        # Validate input
         if not request.audio_url:
             raise HTTPException(status_code=400, detail="Audio URL required")
         
-        # Perform audio analysis
         analysis_result = await audio_detector.analyze(request.audio_url)
-        
-        # Generate report ID
         report_id = str(uuid.uuid4())
         
-        # Prepare response
         response = AnalysisResponse(
             score=analysis_result['score'],
             label=analysis_result['label'],
             confidence=analysis_result['confidence'],
-            evidence=[],  # Audio analysis doesn't use text evidence
+            evidence=[],
             explanation=analysis_result['explanation'],
             report_id=report_id,
             timestamp=datetime.utcnow().isoformat()
         )
         
-        # Save to database
         await database.save_report(
             report_id=report_id,
             content_type='audio',
@@ -223,15 +204,7 @@ async def analyze_audio(request: AudioAnalysisRequest):
 
 @app.get("/report/{report_id}")
 async def get_report(report_id: str):
-    """
-    Retrieve full analysis report by ID
-    
-    Args:
-        report_id: UUID of the report
-        
-    Returns:
-        Full report with all analysis details
-    """
+    """Retrieve full analysis report by ID"""
     try:
         report = await database.get_report(report_id)
         
@@ -247,17 +220,45 @@ async def get_report(report_id: str):
 
 @app.get("/health")
 async def health_check():
-    """System health check"""
+    """System health check with version info"""
     return {
         "status": "healthy",
+        "version": "2.0.0",
         "models": {
             "text_detector": text_detector.is_loaded(),
             "image_detector": image_detector.is_loaded(),
             "audio_detector": audio_detector.is_loaded()
         },
-        "database": await database.health_check()
+        "database": await database.health_check(),
+        "improvements": "Enhanced accuracy with multi-signal analysis"
+    }
+
+@app.get("/stats")
+async def get_stats():
+    """Get system statistics"""
+    return {
+        "trusted_domains": len(text_detector.TRUSTED_DOMAINS),
+        "unreliable_domains": len(text_detector.UNRELIABLE_DOMAINS),
+        "red_flag_patterns": len(text_detector.STRONG_RED_FLAGS),
+        "credibility_signals": len(text_detector.CREDIBILITY_SIGNALS),
+        "analysis_components": [
+            "Domain Trust Scoring",
+            "Linguistic Pattern Analysis",
+            "ML Model Analysis",
+            "Metadata Analysis",
+            "Ensemble Scoring"
+        ]
     }
 
 if __name__ == "__main__":
     import uvicorn
+    print("=" * 50)
+    print("RealityFix API - Improved Version 2.0")
+    print("=" * 50)
+    print("Enhancements:")
+    print("✓ 100+ trusted domain scores")
+    print("✓ Advanced linguistic analysis")
+    print("✓ Multi-signal ensemble approach")
+    print("✓ Better misinformation detection")
+    print("=" * 50)
     uvicorn.run(app, host="0.0.0.0", port=8000)
