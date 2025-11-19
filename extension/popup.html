@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="width: 450px; min-width: 450px;">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=450, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src http://localhost:8000 https://*;">
   <title>RealityFix</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Force width inline as backup */
+    html, body {
+      width: 450px !important;
+      min-width: 450px !important;
+      max-width: 450px !important;
+    }
+  </style>
 </head>
-<body>
+<body style="width: 450px; min-width: 450px;">
   <div class="container">
     <!-- Header -->
     <div class="header">
@@ -18,12 +27,24 @@
     <div id="loading" class="loading hidden">
       <div class="spinner"></div>
       <p>Analyzing content...</p>
+      <p class="loading-tip">This may take 5-10 seconds</p>
     </div>
 
     <!-- Error State -->
     <div id="error" class="error hidden">
-      <p id="errorMessage"></p>
-      <button id="retryBtn" class="btn btn-secondary">Retry</button>
+      <div class="error-icon">⚠️</div>
+      <p id="errorMessage" class="error-message"></p>
+      <div class="error-actions">
+        <button id="retryBtn" class="btn btn-secondary">🔄 Retry</button>
+        <button id="debugBtn" class="btn btn-link">🐛 Debug Info</button>
+      </div>
+    </div>
+
+    <!-- Debug Info (Hidden by default) -->
+    <div id="debugInfo" class="debug-info hidden">
+      <h4>Debug Information:</h4>
+      <div id="debugContent" class="debug-content"></div>
+      <button id="closeDebugBtn" class="btn btn-link">Close</button>
     </div>
 
     <!-- Results -->
@@ -42,13 +63,13 @@
 
       <!-- Summary -->
       <div class="summary">
-        <h3>Analysis Summary</h3>
+        <h3>📊 Analysis Summary</h3>
         <p id="summaryText">No analysis yet. Click "Analyze Page" to start.</p>
       </div>
 
       <!-- Evidence Links -->
       <div class="evidence">
-        <h3>Evidence from Trusted Sources</h3>
+        <h3>🔗 Evidence from Trusted Sources</h3>
         <div id="evidenceList" class="evidence-list">
           <p class="no-evidence">No evidence available yet.</p>
         </div>
@@ -65,9 +86,38 @@
       </div>
     </div>
 
+    <!-- Initial State (First Load) -->
+    <div id="initialState" class="initial-state">
+      <div class="welcome">
+        <h2>Welcome to RealityFix! 👋</h2>
+        <p>Click the button below to analyze the current webpage for:</p>
+        <ul>
+          <li>✓ Fake news detection</li>
+          <li>✓ AI-generated content</li>
+          <li>✓ Manipulated media</li>
+          <li>✓ Source verification</li>
+        </ul>
+        <button id="firstAnalyzeBtn" class="btn btn-primary btn-large">
+          🚀 Start Analysis
+        </button>
+      </div>
+      <div class="tips">
+        <h4>💡 Tips:</h4>
+        <ul>
+          <li>Works best on news articles and social media posts</li>
+          <li>Cannot analyze Chrome internal pages (chrome://)</li>
+          <li>Requires page to have text content</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- Footer -->
     <div class="footer">
-      <p>Powered by AI • <a href="#" id="aboutLink">About</a></p>
+      <p>Powered by AI • <a href="#" id="aboutLink">About</a> • <a href="#" id="helpLink">Help</a></p>
+      <p class="backend-status">
+        <span id="backendStatus" class="status-indicator">●</span>
+        <span id="backendStatusText">Checking backend...</span>
+      </p>
     </div>
   </div>
 

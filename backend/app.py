@@ -1,6 +1,5 @@
 """
-FastAPI Backend - Main Application
-Handles all API routes for text, image, and audio analysis
+FastAPI Backend - Main Application with URL-based trust scoring
 """
 
 from fastapi import FastAPI, HTTPException
@@ -43,6 +42,7 @@ database = Database()
 # Request/Response Models
 class TextAnalysisRequest(BaseModel):
     text: str
+    url: Optional[str] = None  # Add optional URL parameter
 
 class ImageAnalysisRequest(BaseModel):
     image_url: str
@@ -79,10 +79,10 @@ async def root():
 @app.post("/analyze/text", response_model=AnalysisResponse)
 async def analyze_text(request: TextAnalysisRequest):
     """
-    Analyze text content for misinformation
+    Analyze text content for misinformation with domain trust scoring
     
     Args:
-        request: TextAnalysisRequest with text field
+        request: TextAnalysisRequest with text and optional url field
         
     Returns:
         AnalysisResponse with score, label, confidence, evidence, and report_id
@@ -92,8 +92,12 @@ async def analyze_text(request: TextAnalysisRequest):
         if not request.text or len(request.text.strip()) < 10:
             raise HTTPException(status_code=400, detail="Text too short for analysis")
         
-        # Perform text analysis
-        analysis_result = await text_detector.analyze(request.text)
+        # Log the URL if provided
+        if request.url:
+            print(f"Analyzing content from: {request.url}")
+        
+        # Perform text analysis WITH URL for domain trust scoring
+        analysis_result = await text_detector.analyze(request.text, url=request.url)
         
         # Retrieve evidence from trusted sources
         evidence = await evidence_retriever.search(request.text[:200])
