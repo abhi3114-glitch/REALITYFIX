@@ -3,15 +3,24 @@ Image Detector - Analyzes images for AI generation and manipulation
 Uses pretrained models and image forensics techniques
 """
 
-import torch
-import numpy as np
-from typing import Dict
 import logging
 import httpx
 from PIL import Image
 from io import BytesIO
-from torchvision import transforms
+from typing import Dict
 from model_loader import model_loader
+
+# Robust imports
+try:
+    import torch
+    import numpy as np
+    from torchvision import transforms
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    torch = None
+    np = None
+    transforms = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,13 +37,17 @@ class ImageDetector:
         """Load pretrained image classification model"""
         try:
             self.model = model_loader.load_image_model()
-            logger.info("Image detector initialized successfully")
+            if self.model:
+                logger.info("Image detector initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize image detector: {e}")
             self.model = None
     
     def _get_transform(self):
         """Get image preprocessing transform"""
+        if not ML_AVAILABLE:
+            return None
+            
         return transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -47,7 +60,7 @@ class ImageDetector:
     
     def is_loaded(self) -> bool:
         """Check if model is loaded"""
-        return self.model is not None
+        return self.model is not None and ML_AVAILABLE
     
     async def analyze(self, image_url: str) -> Dict:
         """
@@ -126,17 +139,13 @@ class ImageDetector:
             logger.error(f"Failed to download image: {e}")
             return None
     
-    def _calculate_authenticity_score(self, probs: np.ndarray, image: Image.Image) -> float:
+    def _calculate_authenticity_score(self, probs, image: Image.Image) -> float:
         """
         Calculate authenticity score using multiple signals
-        
-        Args:
-            probs: Model output probabilities
-            image: PIL Image object
-            
-        Returns:
-            Authenticity score (0-1)
         """
+        if not ML_AVAILABLE:
+            return 0.6
+            
         # Base score from model confidence
         base_score = float(max(probs))
         
@@ -153,6 +162,9 @@ class ImageDetector:
         Check for common AI generation artifacts
         Simple heuristic-based approach for MVP
         """
+        if not ML_AVAILABLE:
+            return 0.7
+            
         try:
             # Convert to numpy array
             img_array = np.array(image)

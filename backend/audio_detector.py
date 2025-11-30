@@ -3,14 +3,23 @@ Audio Detector - Analyzes audio for deepfake detection
 Uses spectral analysis and pretrained models
 """
 
-import torch
-import numpy as np
-from typing import Dict
 import logging
 import httpx
-import librosa
 from io import BytesIO
+from typing import Dict
 from model_loader import model_loader
+
+# Robust imports
+try:
+    import torch
+    import numpy as np
+    import librosa
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    torch = None
+    np = None
+    librosa = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,14 +36,15 @@ class AudioDetector:
         """Load pretrained audio classification model"""
         try:
             self.model = model_loader.load_audio_model()
-            logger.info("Audio detector initialized successfully")
+            if self.model:
+                logger.info("Audio detector initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize audio detector: {e}")
             self.model = None
     
     def is_loaded(self) -> bool:
         """Check if model is loaded"""
-        return self.model is not None
+        return self.model is not None and ML_AVAILABLE
     
     async def analyze(self, audio_url: str) -> Dict:
         """
@@ -88,8 +98,11 @@ class AudioDetector:
             logger.error(f"Audio analysis error: {e}")
             return self._fallback_analysis()
     
-    async def _download_audio(self, audio_url: str) -> np.ndarray:
+    async def _download_audio(self, audio_url: str):
         """Download and load audio from URL"""
+        if not ML_AVAILABLE:
+            return None
+            
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(audio_url)
@@ -107,16 +120,13 @@ class AudioDetector:
             logger.error(f"Failed to download audio: {e}")
             return None
     
-    def _extract_features(self, audio_data: np.ndarray) -> np.ndarray:
+    def _extract_features(self, audio_data):
         """
         Extract audio features for analysis
-        
-        Args:
-            audio_data: Audio waveform as numpy array
-            
-        Returns:
-            Feature tensor for model input
         """
+        if not ML_AVAILABLE:
+            raise ImportError("ML libraries not available")
+            
         try:
             # Extract mel spectrogram
             mel_spec = librosa.feature.melspectrogram(
@@ -148,16 +158,13 @@ class AudioDetector:
             logger.error(f"Feature extraction error: {e}")
             raise
     
-    def _predict(self, features: torch.Tensor) -> float:
+    def _predict(self, features) -> float:
         """
         Predict authenticity score
-        
-        Args:
-            features: Feature tensor
-            
-        Returns:
-            Authenticity score (0-1)
         """
+        if not ML_AVAILABLE:
+            return 0.6
+            
         try:
             # Move to device
             device = model_loader.get_device()

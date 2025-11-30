@@ -1,126 +1,131 @@
 <!DOCTYPE html>
-<html lang="en" style="width: 450px; min-width: 450px;">
+<html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=450, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src http://localhost:8000 https://*;">
+  <meta name="viewport" content="width=400, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src http://localhost:8000 https://*;">
   <title>RealityFix</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Force width inline as backup */
-    html, body {
-      width: 450px !important;
-      min-width: 450px !important;
-      max-width: 450px !important;
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="width: 450px; min-width: 450px;">
-  <div class="container">
+
+<body>
+  <div class="app-container">
     <!-- Header -->
-    <div class="header">
-      <h1>🔍 RealityFix</h1>
-      <p class="tagline">Real-Time Fact Checker</p>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading" class="loading hidden">
-      <div class="spinner"></div>
-      <p>Analyzing content...</p>
-      <p class="loading-tip">This may take 5-10 seconds</p>
-    </div>
-
-    <!-- Error State -->
-    <div id="error" class="error hidden">
-      <div class="error-icon">⚠️</div>
-      <p id="errorMessage" class="error-message"></p>
-      <div class="error-actions">
-        <button id="retryBtn" class="btn btn-secondary">🔄 Retry</button>
-        <button id="debugBtn" class="btn btn-link">🐛 Debug Info</button>
+    <header class="glass-header">
+      <div class="logo-area">
+        <div class="logo-icon">🛡️</div>
+        <h1>RealityFix</h1>
       </div>
-    </div>
+      <div class="status-indicator" id="backendStatus" title="Backend Status">
+        <span class="dot"></span>
+      </div>
+    </header>
 
-    <!-- Debug Info (Hidden by default) -->
-    <div id="debugInfo" class="debug-info hidden">
-      <h4>Debug Information:</h4>
-      <div id="debugContent" class="debug-content"></div>
-      <button id="closeDebugBtn" class="btn btn-link">Close</button>
-    </div>
-
-    <!-- Results -->
-    <div id="results" class="results hidden">
-      <!-- Trust Score -->
-      <div class="score-container">
-        <div class="score-circle" id="scoreCircle">
-          <span class="score-value" id="scoreValue">--</span>
-          <span class="score-label">Trust Score</span>
+    <!-- Main Content -->
+    <main>
+      <!-- Initial State -->
+      <div id="initialState" class="view-state active">
+        <div class="hero-section">
+          <div class="pulse-ring"></div>
+          <div class="hero-icon">🔍</div>
         </div>
-        <div class="score-status" id="scoreStatus">
-          <span class="status-badge" id="statusBadge">Analyzing</span>
-          <span class="confidence" id="confidence">Confidence: --</span>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      <div class="summary">
-        <h3>📊 Analysis Summary</h3>
-        <p id="summaryText">No analysis yet. Click "Analyze Page" to start.</p>
-      </div>
-
-      <!-- Evidence Links -->
-      <div class="evidence">
-        <h3>🔗 Evidence from Trusted Sources</h3>
-        <div id="evidenceList" class="evidence-list">
-          <p class="no-evidence">No evidence available yet.</p>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="actions">
-        <button id="fullReportBtn" class="btn btn-primary" disabled>
-          📄 Open Full Report
-        </button>
-        <button id="analyzeBtn" class="btn btn-secondary">
-          🔄 Analyze Page
+        <h2>Analyze this page</h2>
+        <p>Detect fake news, AI content, and manipulation in seconds.</p>
+        <button id="startAnalyzeBtn" class="btn-primary glow-effect">
+          <span class="btn-icon">⚡</span> Start Analysis
         </button>
       </div>
-    </div>
 
-    <!-- Initial State (First Load) -->
-    <div id="initialState" class="initial-state">
-      <div class="welcome">
-        <h2>Welcome to RealityFix! 👋</h2>
-        <p>Click the button below to analyze the current webpage for:</p>
-        <ul>
-          <li>✓ Fake news detection</li>
-          <li>✓ AI-generated content</li>
-          <li>✓ Manipulated media</li>
-          <li>✓ Source verification</li>
-        </ul>
-        <button id="firstAnalyzeBtn" class="btn btn-primary btn-large">
-          🚀 Start Analysis
-        </button>
+      <!-- Loading State -->
+      <div id="loadingState" class="view-state hidden">
+        <div class="scanner-container">
+          <div class="scanner-line"></div>
+          <div class="scanner-content">
+            <div class="skeleton-line w-75"></div>
+            <div class="skeleton-line w-50"></div>
+            <div class="skeleton-line w-90"></div>
+          </div>
+        </div>
+        <p class="loading-text">Analyzing content patterns...</p>
       </div>
-      <div class="tips">
-        <h4>💡 Tips:</h4>
-        <ul>
-          <li>Works best on news articles and social media posts</li>
-          <li>Cannot analyze Chrome internal pages (chrome://)</li>
-          <li>Requires page to have text content</li>
-        </ul>
+
+      <!-- Results State -->
+      <div id="resultsState" class="view-state hidden">
+        <!-- Score Gauge -->
+        <div class="score-section">
+          <div class="gauge-container">
+            <svg class="gauge-svg" viewBox="0 0 100 50">
+              <path class="gauge-bg" d="M10,50 A40,40 0 0,1 90,50" />
+              <path id="gaugeProgress" class="gauge-progress" d="M10,50 A40,40 0 0,1 10,50" />
+            </svg>
+            <div class="score-display">
+              <span id="scoreValue">--</span>
+              <span class="score-label">TRUST SCORE</span>
+            </div>
+          </div>
+          <div id="verdictBadge" class="verdict-badge">Analyzing...</div>
+        </div>
+
+        <!-- Details Cards -->
+        <div class="cards-container">
+          <!-- Analysis Card -->
+          <div class="glass-card">
+            <div class="card-header">
+              <span class="card-icon">📊</span>
+              <h3>Analysis</h3>
+            </div>
+            <p id="explanationText" class="card-text">...</p>
+          </div>
+
+          <!-- Breakdown Card -->
+          <div class="glass-card">
+            <div class="card-header">
+              <span class="card-icon">🧠</span>
+              <h3>Breakdown</h3>
+            </div>
+            <div class="breakdown-grid">
+              <div class="breakdown-item">
+                <span class="label">Domain Trust</span>
+                <span id="domainValue" class="value">--</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="label">Linguistic</span>
+                <span id="lingValue" class="value">--</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="label">AI Model</span>
+                <span id="mlValue" class="value">--</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="label">Metadata</span>
+                <span id="metaValue" class="value">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="resetBtn" class="btn-secondary">Analyze Another Page</button>
       </div>
-    </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="view-state hidden">
+        <div class="error-icon">⚠️</div>
+        <h3>Analysis Failed</h3>
+        <p id="errorText">Something went wrong.</p>
+        <button id="retryBtn" class="btn-primary">Try Again</button>
+      </div>
+    </main>
 
     <!-- Footer -->
-    <div class="footer">
-      <p>Powered by AI • <a href="#" id="aboutLink">About</a> • <a href="#" id="helpLink">Help</a></p>
-      <p class="backend-status">
-        <span id="backendStatus" class="status-indicator">●</span>
-        <span id="backendStatusText">Checking backend...</span>
-      </p>
-    </div>
+    <footer>
+      <p>Powered by AI • RealityFix v2.0</p>
+    </footer>
   </div>
 
   <script src="popup.js"></script>
 </body>
+
 </html>

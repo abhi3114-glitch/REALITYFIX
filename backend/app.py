@@ -1,23 +1,26 @@
-# REALITYFIX/backend/app.py
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import List, Optional, Dict
+import uvicorn
 import uuid
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-# Import the IMPROVED detector
+# Load environment variables
+load_dotenv()
+
+# Import detectors
 from text_detector import ImprovedTextDetector
 from image_detector import ImageDetector
 from audio_detector import AudioDetector
 from evidence_retriever import EvidenceRetriever
 from database import Database
 
-# Initialize FastAPI app
 app = FastAPI(
-    title="RealityFix API - Improved",
+    title="RealityFix API",
     description="Enhanced fake news detection with better accuracy",
     version="2.0.0"
 )

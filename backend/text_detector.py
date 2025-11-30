@@ -3,16 +3,30 @@ IMPROVED Text Detector - Significantly Better Accuracy
 Combines multiple signals: domain trust, linguistic analysis, source verification, and ML models
 """
 
-import torch
-import numpy as np
-from typing import Dict, List, Optional
 import logging
+from typing import Dict, List, Optional
 from urllib.parse import urlparse
 import re
-from model_loader import model_loader
 
+# Configure logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Optional ML imports
+try:
+    import torch
+    import numpy as np
+    from model_loader import model_loader
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    torch = None
+    np = None
+    model_loader = None
+    logger.warning("ML dependencies (torch, transformers) not found. Running in lightweight mode.")
+
+# Import Groq Analyzer
+from groq_analyzer import groq_analyzer
 
 class ImprovedTextDetector:
     """Advanced misinformation detector with multi-signal analysis"""
@@ -126,6 +140,9 @@ class ImprovedTextDetector:
     
     def _load_model(self):
         """Load ML model - try better models first"""
+        if not ML_AVAILABLE:
+            return
+
         try:
             # Try to load a better fact-checking model if available
             # For now, fallback to sentiment but we'll use it more carefully
@@ -186,7 +203,7 @@ class ImprovedTextDetector:
             # Get all analysis components
             domain_trust = self._get_domain_trust_score(url)
             linguistic_score = self._analyze_linguistic_patterns(text)
-            ml_score = await self._analyze_with_ml(text) if self.is_loaded() else None
+            ml_score = await self._analyze_with_ml(text)
             metadata_score = self._analyze_metadata(text, url)
             
             # Combine scores with intelligent weighting
@@ -301,7 +318,7 @@ class ImprovedTextDetector:
             score += 0.05
         
         return score
-    
+
     def _analyze_metadata(self, text: str, url: Optional[str]) -> float:
         """
         Analyze metadata signals
@@ -332,8 +349,23 @@ class ImprovedTextDetector:
     
     async def _analyze_with_ml(self, text: str) -> Optional[float]:
         """
-        Use ML model for analysis (with grain of salt for sentiment models)
+        Use AI/ML model for analysis. Prioritizes Groq (Llama 3.3) if available,
+        falls back to local ML model if installed.
         """
+        # 1. Try Groq API first (Superior accuracy)
+        if groq_analyzer.is_available():
+            try:
+                logger.info("Analyzing with Groq (Llama 3.3)...")
+                result = await groq_analyzer.analyze_credibility(text)
+                if result and 'credibility_score' in result:
+                    return float(result['credibility_score'])
+            except Exception as e:
+                logger.error(f"Groq analysis failed, falling back: {e}")
+
+        # 2. Fallback to local ML model if available
+        if not ML_AVAILABLE or not self.is_loaded():
+            return None
+
         try:
             inputs = self.tokenizer(
                 text,
@@ -364,7 +396,7 @@ class ImprovedTextDetector:
             return ml_score
             
         except Exception as e:
-            logger.error(f"ML analysis error: {e}")
+            logger.error(f"Local ML analysis error: {e}")
             return None
     
     def _combine_scores(
@@ -446,7 +478,13 @@ class ImprovedTextDetector:
         
         # Check agreement between signals
         if len(available_signals) >= 2:
-            variance = np.var(available_signals)
+            if np:
+                variance = np.var(available_signals)
+            else:
+                # Manual variance calculation if numpy is missing
+                mean = sum(available_signals) / len(available_signals)
+                variance = sum((x - mean) ** 2 for x in available_signals) / len(available_signals)
+            
             # Low variance = high agreement = high confidence
             agreement_bonus = max(0, 0.25 - variance)
             base_confidence += agreement_bonus

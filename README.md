@@ -1,39 +1,6 @@
 # RealityFix - Real-Time Fake News & Manipulated Media Detector
 
 ![RealityFix](https://img.shields.io/badge/RealityFix-v1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-
-RealityFix is a comprehensive browser extension and backend system that analyzes webpage content in real-time to detect fake news, AI-generated content, and manipulated media. It provides users with trust scores, evidence from reliable sources, and detailed analysis reports.
-
-## 🌟 Features
-
-### Browser Extension (Chrome Manifest V3)
-- **Content Extraction**: Automatically extracts text, images, and video data from web pages
-- **Real-time Analysis**: Analyzes content as you browse
-- **Trust Score Badge**: Displays a color-coded trust score (0-100) on the extension icon
-- **Interactive Popup**: Shows detailed analysis with:
-  - Trust score visualization
-  - Content classification (Trustworthy / Suspicious / Misinformation)
-  - Confidence level
-  - Evidence links from trusted sources (BBC, Reuters, AP News, Wikipedia)
-  - Full report access
-
-### Backend API (FastAPI)
-- **Text Analysis**: Detects misinformation using pretrained transformer models
-- **Image Analysis**: Identifies AI-generated or manipulated images
-- **Audio Analysis**: Detects deepfake audio using spectral analysis
-- **Evidence Retrieval**: Searches trusted sources for supporting evidence
-- **Report Generation**: Creates detailed analysis reports with unique IDs
-- **Database Storage**: SQLite database for caching and report persistence
-
-### ML Models
-- **Text**: Pretrained BERT/DistilBERT for text classification
-- **Image**: ResNet-based image forensics with artifact detection
-- **Audio**: CNN-based deepfake detection with spectrogram analysis
-
-## 📁 Project Structure
-
-```
 realityfix/
 ├── extension/                  # Browser Extension
 │   ├── manifest.json          # Chrome extension manifest V3
@@ -81,35 +48,6 @@ cd REALITYFIX
 python -m venv venv
 
 # On Windows
-venv\Scripts\activate
-
-# On macOS/Linux
-source venv/bin/activate
-```
-
-3. **Install dependencies**
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-4. **Download pretrained models** (first run will auto-download)
-```bash
-# Models will be automatically downloaded on first use
-# Alternatively, pre-download with:
-python -c "from transformers import AutoTokenizer, AutoModelForSequenceClassification; AutoTokenizer.from_pretrained('distilbert-base-uncased-finetuned-sst-2-english'); AutoModelForSequenceClassification.from_pretrained('distilbert-base-uncased-finetuned-sst-2-english')"
-```
-
-5. **Run the backend server**
-```bash
-python app.py
-```
-
-The API will be available at `http://localhost:8000`
-
-### Browser Extension Setup
-
-1. **Open Chrome Extensions page**
    - Navigate to `chrome://extensions/`
    - Enable "Developer mode" (toggle in top-right corner)
 
