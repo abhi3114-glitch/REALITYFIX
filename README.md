@@ -78,6 +78,20 @@ cd REALITYFIX/backend
 ```bash
 # Create virtual environment
 python -m venv venv
+venv\Scripts\activate
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Configure Environment Variables**
+   - Copy `.env.example` to `.env`
+   - Open `.env` and add your API keys:
+     - `GEMINI_API_KEY`: Google Gemini API key
+     - `GROQ_API_KEY`: Groq API key (for Llama 3.3)
+
 
 # Activate virtual environment
 # On Windows:
